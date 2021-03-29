@@ -16,8 +16,8 @@ public class RopeJointStabilizer : MonoBehaviour
     // to ensure the joint is stable
     void FixedUpdate()
     {
-        if (Physics.OverlapSphere(this.transform.position, 0.3f, groundLayer).Length != 0){
-            joint.projectionDistance = 0.1f;
+        if (Physics.OverlapSphere(this.transform.position, 0.4f, groundLayer).Length != 0){
+            joint.projectionDistance = 0.2f;
         }
         else {
             joint.projectionDistance = 0.001f;

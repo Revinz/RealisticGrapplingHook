@@ -14,6 +14,6 @@ public class RopeMoveController : MonoBehaviour
             
         Vector3 moveDir = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0) * Time.deltaTime * speed; 
         //selectedJoint.GetComponent<Rigidbody>().MovePosition(selectedJoint.transform.position + moveDir);
-        selectedJoint.GetComponent<Rigidbody>().AddForce(moveDir * speed, ForceMode.Impulse);
+        selectedJoint.GetComponent<Rigidbody>().AddForce(moveDir * speed, ForceMode.VelocityChange);
     }
 }
