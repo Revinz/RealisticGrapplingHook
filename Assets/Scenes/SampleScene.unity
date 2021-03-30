@@ -2210,6 +2210,8 @@ MonoBehaviour:
   - {fileID: 0}
   jointPrefab: {fileID: 2205324108465682, guid: 1a1822374dc2adc409fef12701743957,
     type: 3}
+  hookHeadPrefab: {fileID: 1321544811780183862, guid: f79c72c023aacf24aa08cca0dae1ba6f,
+    type: 3}
 --- !u!4 &1732700029
 Transform:
   m_ObjectHideFlags: 0

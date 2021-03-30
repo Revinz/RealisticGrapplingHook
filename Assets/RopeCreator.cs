@@ -21,6 +21,8 @@ public class RopeCreator : MonoBehaviour
     [Header("Other - Don't Change")]
     public List<GameObject> joints;
     public GameObject jointPrefab;
+    public GameObject hookHeadPrefab;
+    private GameObject hookHead;
 
     void Start() {
         if (!Application.isPlaying) {
@@ -32,12 +34,18 @@ public class RopeCreator : MonoBehaviour
         {   
             Destroy(child.gameObject);
         }   
-        
+
+               
+        hookHead = Instantiate(hookHeadPrefab, this.transform.position, Quaternion.identity);
+        hookHead.transform.parent = this.transform;
+
         joints = new List<GameObject>(); 
         for (int i = 0; i < amountOfJoints; i++) {
             GameObject newJoint = CreateRopeSection(i);
             joints.Add(newJoint);
         }
+ 
+        //joints[0].GetComponent<ConfigurableJoint>().connectedBody = hookHead;
         
     }
     
@@ -61,15 +69,18 @@ public class RopeCreator : MonoBehaviour
 
         //Connect the joint to the previous joint, if there is one
         Debug.Log(joints.Count);
+        if (jointIndex == 0){
+            configJoint.connectedBody = hookHead.GetComponent<Rigidbody>();
+        }
         if (jointIndex != 0) {
             //Connect the previous body to the joint
             configJoint.connectedBody = joints[jointIndex - 1].GetComponent<Rigidbody>();
 
-            //Lock the motion to ensure the joints follow eachother
-            configJoint.xMotion = ConfigurableJointMotion.Locked;
-            configJoint.yMotion = ConfigurableJointMotion.Locked;
-            configJoint.zMotion = ConfigurableJointMotion.Locked;
         }
+        //Lock the motion to ensure the joints follow eachother
+        configJoint.xMotion = ConfigurableJointMotion.Locked;
+        configJoint.yMotion = ConfigurableJointMotion.Locked;
+        configJoint.zMotion = ConfigurableJointMotion.Locked;
 
         // ** Configure rigidbody settings **
         Rigidbody rb = joint.GetComponent<Rigidbody>();
