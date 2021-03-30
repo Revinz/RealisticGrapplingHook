@@ -44,8 +44,6 @@ public class RopeCreator : MonoBehaviour
             GameObject newJoint = CreateRopeSection(i);
             joints.Add(newJoint);
         }
- 
-        //joints[0].GetComponent<ConfigurableJoint>().connectedBody = hookHead;
         
     }
     
