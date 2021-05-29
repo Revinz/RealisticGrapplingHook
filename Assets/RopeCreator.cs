@@ -18,13 +18,21 @@ public class RopeCreator : MonoBehaviour
     public float jointDiameterCM = 4;
     public Materials mat = Materials.cotton;
 
+    [Header("Swining Properties")]
+    public GameObject rotCenter;
+    public int swingingPoint = 6;
+    public int swingingPower = 50;
+    public float swingingDecreaseMultiplierPerJoint = 0.8f;
+    private bool finishedFirstTimeSetup = false;
+    private Vector3? previousLoc = null; //vector3? = nullable vector3
+
     [Header("Other - Don't Change")]
     public List<GameObject> joints;
     public GameObject jointPrefab;
     public GameObject hookHeadPrefab;
     private GameObject hookHead;
 
-    void Start() {
+    void Awake() {
         if (!Application.isPlaying) {
             Debug.Log("Is EditMode");
             return;
@@ -44,16 +52,27 @@ public class RopeCreator : MonoBehaviour
             GameObject newJoint = CreateRopeSection(i);
             joints.Add(newJoint);
         }
-        
+
+        this.gameObject.transform.rotation = Quaternion.Euler(new Vector3(-90, 0, 0));
+
+        SetupSwinging();
+        finishedFirstTimeSetup = true;
     }
-    
+
+    private void OnValidate()
+    {
+
+        if (Application.isPlaying && finishedFirstTimeSetup)
+            SetupSwinging();
+    }
+
     //jointIndex = position in the rope
     GameObject CreateRopeSection(int jointIndex) {
         GameObject joint = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
 
         joint.transform.parent = this.transform;
         joint.transform.localScale = new Vector3(jointDiameterCM/100, jointLengthCM/100, jointDiameterCM / 100);
-            joint.transform.localPosition = new Vector3(0, jointIndex * -((jointLengthCM/100 + 0.01f) * 2), 0); 
+        joint.transform.localPosition = new Vector3(0, jointIndex * -((jointLengthCM/100 + 0.01f) * 2), 0); 
 
         // *** Add ConfigurableJoint and configure it to the correct settings ***
         ConfigurableJoint configJoint = joint.AddComponent<ConfigurableJoint>();
@@ -73,8 +92,8 @@ public class RopeCreator : MonoBehaviour
         if (jointIndex != 0) {
             //Connect the previous body to the joint
             configJoint.connectedBody = joints[jointIndex - 1].GetComponent<Rigidbody>();
-
         }
+
         //Lock the motion to ensure the joints follow eachother
         configJoint.xMotion = ConfigurableJointMotion.Locked;
         configJoint.yMotion = ConfigurableJointMotion.Locked;
@@ -87,8 +106,58 @@ public class RopeCreator : MonoBehaviour
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode  = CollisionDetectionMode.Continuous;
 
+        // Add and configure Rotation script
+        rot rotScript = joint.AddComponent<rot>();
+        rotScript.center = rotCenter.transform;
+
         return joint;
     }
+
+    void SetupSwinging()
+    {
+        //First reset everything
+        for (int i = 0; i < joints.Count; i++)
+        {
+
+            setJointNonKinematic(joints[i]);
+
+        }
+
+        setJointKinematic(joints[swingingPoint]);  
+    }
+
+    void setJointKinematic(GameObject joint)
+    {
+        var rb = joint.GetComponent<Rigidbody>();
+        var rotScript = joint.GetComponent<rot>();
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        rb.isKinematic = true;
+
+        for (int i = swingingPoint - 1; i >= 0; i--)
+        {
+            joints[i].GetComponent<rot>().magnitudeOfForce = - swingingPower * Mathf.Pow(swingingDecreaseMultiplierPerJoint, i);
+            joints[i].GetComponent<rot>().center = rotScript.center;
+        }
+
+        if (previousLoc != null)
+            joint.transform.position = (Vector3)previousLoc;
+
+        joint.transform.rotation = Quaternion.Euler(new Vector3(-90, 0, 0));
+        previousLoc = rb.transform.position;
+        rotScript.center.position = rotScript.gameObject.transform.position + rb.gameObject.transform.up * jointLengthCM / 100;
+    }
+
+    void setJointNonKinematic(GameObject joint)
+    {
+        var rb = joint.GetComponent<Rigidbody>();
+        var rotScript = joint.GetComponent<rot>();
+        rotScript.magnitudeOfForce = 0;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        rb.isKinematic = false;
+    }
+
 
     float CalcWeight() {
         // weight = mat_weight * Volume = mat_weight * (length * pi * r^2)

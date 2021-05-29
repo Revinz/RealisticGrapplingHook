@@ -17,10 +17,10 @@ public class RopeJointStabilizer : MonoBehaviour
     void FixedUpdate()
     {
         if (Physics.OverlapSphere(this.transform.position, 0.4f, groundLayer).Length != 0){
-            joint.projectionDistance = 0.2f;
+            joint.projectionDistance = 0.2f; //0.2
         }
         else {
-            joint.projectionDistance = 0.001f;
+            joint.projectionDistance = 0.001f; //0.001
         }
     }
 }
