@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 public class RopeCreator : MonoBehaviour
 {
     //Possible materials to be used for the rope simulation
@@ -25,6 +24,9 @@ public class RopeCreator : MonoBehaviour
     public float swingingDecreaseMultiplierPerJoint = 0.8f;
     private bool finishedFirstTimeSetup = false;
     private Vector3? previousLoc = null; //vector3? = nullable vector3
+    private bool holdingRope = true;
+    private bool swingRope = false;
+    public float speed = 0.0001f;
 
     [Header("Other - Don't Change")]
     public List<GameObject> joints;
@@ -163,4 +165,63 @@ public class RopeCreator : MonoBehaviour
         // weight = mat_weight * Volume = mat_weight * (length * pi * r^2)
         return (int)mat * (jointLengthCM/100 * Mathf.PI * Mathf.Pow(jointDiameterCM / 2 / 100, 2));
     }
+
+
+
+
+    void Update()
+    {
+        if (holdingRope)
+        {
+            if (Input.GetKeyDown("space"))
+            {
+                swingRope = true;
+            }
+            if (Input.GetKeyUp("space"))
+            {   
+                swingRope = false;
+                swingingPower = 0;
+                // Debug.Log("release rope");
+                setJointNonKinematic(joints[swingingPoint]);
+            }
+            if (swingingPower < 200 && swingRope)
+            {
+                swingingPower += 10;
+            }
+            
+            if (Input.GetKeyDown("left")&&(swingingPoint >= 2))
+            {
+                swingingPoint -= 1;
+                SetupSwinging();
+            }
+            if (Input.GetKeyDown("right") && (swingingPoint < amountOfJoints-1))
+            {
+                swingingPoint += 1;
+                SetupSwinging();
+            }
+            if (Input.GetKey("up"))
+            {
+                joints[swingingPoint].transform.position += Vector3.up * speed * Time.deltaTime;
+                previousLoc = joints[swingingPoint].transform.position;
+            }
+            if (Input.GetKey("down"))
+            {
+                joints[swingingPoint].transform.position += Vector3.up * (-speed) * Time.deltaTime;
+                previousLoc = joints[swingingPoint].transform.position;
+            }
+
+            UpdatePower();
+        }
+
+    }
+
+    void UpdatePower()
+    {
+        for (int i = swingingPoint - 1; i >= 0; i--)
+        {
+            joints[i].GetComponent<rot>().magnitudeOfForce = - swingingPower * Mathf.Pow(swingingDecreaseMultiplierPerJoint, i);
+        }
+    }
+
+   
 }
