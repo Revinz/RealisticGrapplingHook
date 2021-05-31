@@ -183,10 +183,19 @@ public class RopeCreator : MonoBehaviour
                 swingingPower = 0;
                 // Debug.Log("release rope");
                 setJointNonKinematic(joints[swingingPoint]);
+                holdingRope = false;
             }
-            if (swingingPower < 200 && swingRope)
+            if (swingingPower < 300 && swingRope)
             {
-                swingingPower += 10;
+
+                if (swingingPower + (int)(200 * Time.deltaTime) > 300)
+                {
+                    swingingPower = 300;
+                }
+                else
+                {
+                    swingingPower += (int)(200 * Time.deltaTime);
+                }
             }
             
             if (Input.GetKeyDown("left")&&(swingingPoint >= 2))
